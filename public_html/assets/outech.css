@@ -1,0 +1,73 @@
+/* OUTECH — compléments à Tailwind (port de src/app/globals.css) */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Barres de défilement discrètes -------------------------------------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+/* Le triangle par défaut des <details> gênerait l'alignement du menu. */
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Impression : ne garder que la zone document -------------------------- */
+@media print {
+  .sans-impression {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  .zone-impression {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    /* Les tickets fixent une largeur en millimètres pour l'aperçu écran ;
+       à l'impression c'est `@page` qui commande, sinon le rouleau se
+       retrouve tronqué d'une marge. */
+    width: auto !important;
+  }
+}
+
+/* Tableaux de saisie denses (comptoir impression) ---------------------- */
+/* Dans une colonne de six rems, les flèches d'un champ numérique mangent la
+   moitié de la place : on les retire là où la colonne est comptée au plus
+   juste, sans toucher aux formulaires ordinaires. */
+.saisie-dense {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.saisie-dense::-webkit-outer-spin-button,
+.saisie-dense::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hauteur des champs date / heure -------------------------------------- */
+/* L'éditeur natif de Chrome est deux pixels plus haut que le reste : dans une
+   barre d'outils, un « Du / Au » dépassait donc des boutons et des champs
+   voisins. On les ramène à la hauteur commune (`py-2` + `text-sm`). */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  height: 2.25rem;
+}

@@ -1,0 +1,2 @@
+# Le code applicatif n'est jamais servi en direct : tout passe par index.php.
+Require all denied

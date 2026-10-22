@@ -1,0 +1,32 @@
+# Identifiants : ne jamais publier.
+.env
+.env.*
+!.env.exemple
+**/.env
+**/.env.*
+!**/.env.exemple
+
+# Copies et sauvegardes locales.
+**/.sauvegarde-*/
+**/.derniere-sauvegarde
+**/*.avant-*
+**/*.bak
+
+# Outils de diagnostic qui affichent la configuration.
+public_html/verif-env.php
+public_html/verif-session.php
+
+# Données SQLite (version de bureau en développement).
+**/donnees/
+*.sqlite
+*.sqlite-*
+
+# Réglages locaux de l'éditeur / de Claude.
+**/.claude/
+
+# Sorties de compilation.
+build/
+desktop/**/bin/
+desktop/**/obj/
+
+DO_NOT_UPLOAD_HERE

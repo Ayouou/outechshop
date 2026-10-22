@@ -1,0 +1,68 @@
+# Construit OUTECH.exe et son installateur Windows.
+#
+# - À chaque push sur main : l'installateur est disponible dans l'onglet
+#   Actions → dernier run → « Artifacts » → OUTECH-Setup.
+# - Sur un tag v* (ex. v1.0.0) : une Release GitHub est publiée avec l'installateur.
+name: Build .exe
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -like "refs/tags/v*") { $v = $env:GITHUB_REF_NAME.Substring(1) }
+          else { $v = "1.0.$env:GITHUB_RUN_NUMBER" }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Compiler OUTECH.exe
+        shell: pwsh
+        run: |
+          dotnet publish desktop/OutechDesktop/OutechDesktop.csproj -c Release -o build/app `
+            -p:Version=${{ steps.version.outputs.version }}
+          Remove-Item build/app/*.pdb -ErrorAction SilentlyContinue
+
+      - name: PHP + application web
+        shell: pwsh
+        run: ./desktop/preparer.ps1 -Sortie build/app
+
+      - name: Test rapide du PHP embarqué
+        shell: pwsh
+        run: |
+          $env:OUTECH_PHP_EXT = (Resolve-Path build/app/php/ext).Path
+          $env:OUTECH_SESSIONS = $env:RUNNER_TEMP
+          $env:BD_PILOTE = "sqlite"
+          $env:BD_DOSSIER = Join-Path $env:RUNNER_TEMP "donnees"
+          ./build/app/php/php.exe -c build/app/php/php.ini -m
+          ./build/app/php/php.exe -c build/app/php/php.ini -r "new PDO('sqlite::memory:'); echo 'SQLite OK';"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Installateur (Inno Setup)
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /DVersion=${{ steps.version.outputs.version }} desktop/installateur.iss
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OUTECH-Setup
+          path: build/installateur/*.exe
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/installateur/*.exe

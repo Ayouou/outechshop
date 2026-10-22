@@ -1,0 +1,35 @@
+# OUTECH — réécriture d'URL vers le contrôleur unique.
+# Les fichiers réellement présents (assets, images) sont servis directement.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Chemin de base : fonctionne à la racine du domaine comme dans un
+    # sous-dossier (http://localhost/outech-php/), sans configuration.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# La configuration et le code applicatif ne sont jamais servis en direct.
+# `.env` porte le mot de passe de la base : un serveur qui le rendrait
+# téléchargeable livrerait les données de toutes les sociétés.
+<FilesMatch "^(config\.php|\.env.*)$">
+    Require all denied
+</FilesMatch>
+
+# Même refus sur les serveurs restés en Apache 2.2 (certains mutualisés).
+<IfModule !mod_authz_core.c>
+    <FilesMatch "^(config\.php|\.env.*)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_php.c>
+    php_value upload_max_filesize 16M
+    php_value post_max_size 16M
+</IfModule>
+
+Options -Indexes
+DirectoryIndex index.php
